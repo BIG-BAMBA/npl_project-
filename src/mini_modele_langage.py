@@ -177,15 +177,26 @@ def predire_mot_suivant(contexte, laplace=False, top_n=None):
 # PARTIE 5 - GENERATION DE PHRASE
 # =========================================================
 
-def generer_phrase(max_len=15):
+def generer_phrase(max_len=15, aleatoire=True):
+    """Génère une phrase à partir de <s>.
+    Si aleatoire=True (par défaut) : tire un mot au sort parmi les candidats,
+    pondéré par leur probabilité (évite les boucles infinies type
+    'le chat aime le chat aime le chat...').
+    Si aleatoire=False : choix glouton (toujours le mot le plus probable),
+    utile pour reproduire un résultat identique à chaque exécution."""
+    import random
     phrase = ["<s>"]
     while phrase[-1] != "</s>" and len(phrase) < max_len:
         mot_precedent = phrase[-1]
         candidats = predire_mot_suivant(mot_precedent)
         if not candidats:
             break
-        meilleur_mot = candidats[0][0]
-        phrase.append(meilleur_mot)
+        if aleatoire:
+            mots, poids = zip(*candidats)
+            mot_choisi = random.choices(mots, weights=poids, k=1)[0]
+        else:
+            mot_choisi = candidats[0][0]
+        phrase.append(mot_choisi)
     return " ".join(phrase)
 
 
